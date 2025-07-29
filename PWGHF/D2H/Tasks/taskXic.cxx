@@ -405,7 +405,7 @@ struct HfTaskXic {
               outputAE = candidate.aeOutputXicToPiKP()[0];    /// AE output of feature 0
               outputMSE = candidate.mseXicToPiKP()[0];        /// MSE
               LOG(debug)<<"Global mse in taskXic for PiKP Data "<<outputMSE;
-              registry.get<THnSparse>(HIST("hnXicVarsWithMse"))->Fill(massXic, ptCandidate, candidate.decayLength(), candidate.cpa(), outputAE, 0, 0.0, 0.0, false, outputMSE);
+              registry.get<THnSparse>(HIST("hnXicVarsWithMse"))->Fill(massXic, ptCandidate, candidate.decayLength(), candidate.cpa(), outputAE, false, outputMSE);
             }                
           } else {
             registry.get<THnSparse>(HIST("hnXicVars"))->Fill(massXic, ptCandidate, candidate.chi2PCA(), candidate.decayLength(), candidate.decayLengthXY(), candidate.cpa(), false);

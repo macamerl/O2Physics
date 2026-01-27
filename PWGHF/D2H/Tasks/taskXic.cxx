@@ -65,9 +65,14 @@ struct HfTaskXic {
   Configurable<float> dcaXYTrackMax{"dcaXYTrackMax", 0.0025, "max. DCAxy for track"};
   Configurable<float> dcaZTrackMax{"dcaZTrackMax", 0.0025, "max. DCAz for track"};
   Configurable<std::vector<double>> binsPt{"binsPt", std::vector<double>{hf_cuts_xic_to_p_k_pi::vecBinsPt}, "pT bin limits"};
-
   Configurable<bool> enableTHn{"enableTHn", false, "enable THn for Xic"};
+  
   Service<o2::framework::O2DatabasePDG> pdg;
+  
+  using FilteredCandidatesBdt = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi>>;
+  using FilteredCandidatesAe = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMseXicToPKPi, aod::HfAeOutXicToPKPi>>;
+  using FilteredCandidatesMcBdt = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi, aod::HfCand3ProngMcRec>>;
+  using FilteredCandidatesMcAe = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMseXicToPKPi, aod::HfAeOutXicToPKPi, aod::HfCand3ProngMcRec>> ;
 
   Filter filterSelectCandidates = (aod::hf_sel_candidate_xic::isSelXicToPKPi >= selectionFlagXic || aod::hf_sel_candidate_xic::isSelXicToPiKP >= selectionFlagXic);
 
@@ -373,7 +378,7 @@ struct HfTaskXic {
       if (enableTHn) {
         double massXic(-1);
         double outputBkg(-1), outputPrompt(-1), outputFD(-1), outputMSE(-1), outputAE(-1);
-        const int ternaryCl = 3;
+        //const int ternaryCl = 3;
         if (candidate.isSelXicToPKPi() >= selectionFlagXic) {
           massXic = HfHelper::invMassXicToPKPi(candidate);
           if constexpr (UseMl) {
@@ -422,20 +427,18 @@ struct HfTaskXic {
   {
     analysisData<false>(collision, candidates, tracks);
   }
+ 
   PROCESS_SWITCH(HfTaskXic, processDataStd, "Process Data with the standard method", true);
   
-  using candidatesBdt = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi>>;
-  using candidatesAe = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMseXicToPKPi, aod::HfAeOutXicToPKPi>>;
-  
   void processDataWithMl(aod::Collision const& collision,
-                         /*soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi>>*/ candidatesBdt const& candidatesMl, aod::TracksWDca const& tracks)
+                         FilteredCandidatesBdt const& candidatesMl, aod::TracksWDca const& tracks)
   {
     analysisData<true>(collision, candidatesMl, tracks);
   }
   PROCESS_SWITCH(HfTaskXic, processDataWithMl, "Process Data with the ML method", false);
   
   void processDataWithAe(aod::Collision const& collision,
-                         candidatesAe const& candidatesMl, aod::TracksWDca const& tracks)
+                         FilteredCandidatesAe const& candidatesMl, aod::TracksWDca const& tracks)
   {
     /* New  process for AE and MSE */
     analysisData<true>(collision, candidatesMl, tracks); 
@@ -531,7 +534,7 @@ struct HfTaskXic {
 
         if (enableTHn) {
           double outputBkg(-1), outputPrompt(-1), outputFD(-1), outputMSE(-1), outputAE(-1);
-          const int ternaryCl = 3;
+          //const int ternaryCl = 3;
           if ((candidate.isSelXicToPKPi() >= selectionFlagXic) && pdgCodeProng0 == kProton) {
             if constexpr (UseMl) {
               if constexpr ( requires { candidate.mlProbXicToPKPi(); } ){ //if (candidate.mlProbXicToPKPi().size() == ternaryCl) { // this condition can be replaced with 
@@ -630,6 +633,7 @@ struct HfTaskXic {
       }
     }
   }
+  
   void processMcStd(soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfCand3ProngMcRec>> const& selectedCandidatesMc,
                     soa::Join<aod::McParticles, aod::HfCand3ProngMcGen> const& mcParticles,
                     aod::TracksWMc const& tracksWithMc)
@@ -638,10 +642,7 @@ struct HfTaskXic {
   }
   PROCESS_SWITCH(HfTaskXic, processMcStd, "Process MC with the standard method", false);
   
-  using candidatesMcBdt = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi, aod::HfCand3ProngMcRec>>;
-  using candidatesMcAe = soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMseXicToPKPi, aod::HfAeOutXicToPKPi, aod::HfCand3ProngMcRec>> ;
-
-  void processMcWithMl(/*soa::Filtered<soa::Join<aod::HfCand3ProngWPidPiKaPr, aod::HfSelXicToPKPi, aod::HfMlXicToPKPi, aod::HfCand3ProngMcRec>>*/ candidatesMcBdt const& selectedCandidatesMlMc,
+  void processMcWithMl(FilteredCandidatesMcBdt const& selectedCandidatesMlMc,
                        soa::Join<aod::McParticles, aod::HfCand3ProngMcGen> const& mcParticles,
                        aod::TracksWMc const& tracksWithMc)
   {
@@ -649,7 +650,7 @@ struct HfTaskXic {
   }
   PROCESS_SWITCH(HfTaskXic, processMcWithMl, "Process Mc with the ML method", false);
   
-  void processMcWithAe(candidatesMcAe const& selectedCandidatesMlMc,
+  void processMcWithAe(FilteredCandidatesMcAe const& selectedCandidatesMlMc,
                      soa::Join<aod::McParticles, aod::HfCand3ProngMcGen> const& mcParticles,
                      aod::TracksWMc const& tracksWithMc)
   {

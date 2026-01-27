@@ -110,8 +110,8 @@ struct HfCandidateSelectorXicToPKPi {
   std::vector<float> outputAeXicToPKPi = {};  //! new vector for AE output
   std::vector<float> outputAeXicToPiKP = {};  //! new vector for AE output
   std::vector<std::vector<float>> scaleMatrixMin, scaleMatrixMax; //! new vector for preprocessing parameters
-  std::vector<float> TscaleMin = {}; //! new vector for preprocessing parameters
-  std::vector<float> TscaleMax = {}; //! new vector for preprocessing parameters
+  std::vector<float> vScaleMin = {}; //! new vector for preprocessing parameters
+  std::vector<float> vScaleMax = {}; //! new vector for preprocessing parameters
   int scaleType = 0; //! 0 indicates no scaling application
   
   o2::ccdb::CcdbApi ccdbApi;
@@ -281,16 +281,16 @@ struct HfCandidateSelectorXicToPKPi {
       outputMseXicToPiKP.clear();
       outputAeXicToPKPi.clear();
       outputAeXicToPiKP.clear();
-      TscaleMin.clear();
-      TscaleMax.clear();
+      vScaleMin.clear();
+      vScaleMax.clear();
 
       auto ptCand = candidate.pt();
      
       if(applyMinMax || applyMSE){ //! for AE preprocessing in each pTBin
       	  int pTBin = findBin(binsPt, ptCand);
       	  if(pTBin > -1){
-          TscaleMin = hfAeResponse.getScalePars(pTBin, scaleMatrixMin);
-          TscaleMax = hfAeResponse.getScalePars(pTBin, scaleMatrixMax);
+          vScaleMin = hfAeResponse.getScalePars(pTBin, scaleMatrixMin);
+          vScaleMax = hfAeResponse.getScalePars(pTBin, scaleMatrixMax);
 	  }
       }
       
@@ -437,12 +437,12 @@ struct HfCandidateSelectorXicToPKPi {
           std::vector<float> inputFeaturesXicToPKPi = hfMlResponse.getInputFeatures(candidate, true);
           isSelectedMlXicToPKPi = hfMlResponse.isSelectedMl(inputFeaturesXicToPKPi, ptCand, outputMlXicToPKPi);
           if (applyMSE) {
-            //for(int i = 0; i < TscaleMin.size(); i++) LOG(info) << "Min vector GLOB\t"<< TscaleMin.at(i);
+            //for(int i = 0; i < vScaleMin.size(); i++) LOG(info) << "Min vector GLOB\t"<< vScaleMin.at(i);
             /// fill outputAeXicToPKPi with rescaled AE output since ML output is automatically scaled
-            hfAeResponse.unsetScaling(applyMSE, scaleType, outputMlXicToPKPi, TscaleMin, TscaleMax);
+            hfAeResponse.unsetScaling(applyMSE, scaleType, outputMlXicToPKPi, vScaleMin, vScaleMax);
             outputAeXicToPKPi = hfAeResponse.getPostprocessedOutput();
             /// fill outputMSEXicToPKPi vector with MSE
-            hfAeResponse.setScaling(applyMSE, scaleType, inputFeaturesXicToPKPi, TscaleMin, TscaleMax);
+            hfAeResponse.setScaling(applyMSE, scaleType, inputFeaturesXicToPKPi, vScaleMin, vScaleMax);
             float msePKPi = hfAeResponse.getMse(inputFeaturesXicToPKPi, outputMlXicToPKPi); /// args are not-scaled input, automatically scaled ML output
             outputMseXicToPKPi.push_back(msePKPi);
           }
@@ -452,10 +452,10 @@ struct HfCandidateSelectorXicToPKPi {
           isSelectedMlXicToPiKP = hfMlResponse.isSelectedMl(inputFeaturesXicToPiKP, ptCand, outputMlXicToPiKP);
           if (applyMSE) {
             /// fill outputAeXicToPiKP with rescaled AE output since ML output is automatically scaled
-            hfAeResponse.unsetScaling(applyMSE, scaleType, outputMlXicToPiKP, TscaleMin, TscaleMax);
+            hfAeResponse.unsetScaling(applyMSE, scaleType, outputMlXicToPiKP, vScaleMin, vScaleMax);
             outputAeXicToPiKP = hfAeResponse.getPostprocessedOutput();
             /// fill outputMSEXicToPiKP vector with MSE
-            hfAeResponse.setScaling(applyMSE, scaleType, inputFeaturesXicToPiKP, TscaleMin, TscaleMax);
+            hfAeResponse.setScaling(applyMSE, scaleType, inputFeaturesXicToPiKP, vScaleMin, vScaleMax);
             float msePiKP = hfAeResponse.getMse(inputFeaturesXicToPiKP, outputMlXicToPiKP); /// args are not-scaled input, automatically scaled ML output
             outputMseXicToPiKP.push_back(msePiKP);
           }

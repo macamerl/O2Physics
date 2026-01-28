@@ -17,7 +17,7 @@
 #define PWGHF_CORE_HFAETOMSEXICTOPKPI_H_
 
 #include <vector>
-#include <iostream>
+//#include <iostream>
 #include <fstream>
 #include "rapidjson/document.h"
 #include "rapidjson/filereadstream.h"
@@ -36,14 +36,14 @@ namespace o2::analysis
   		virtual ~HfAeToMseXicToPKPi() = default;
   		
   		std::vector<float> yScaled, yOutRescaled;
-  		std::vector<std::vector<float>> MinMatrix, MaxMatrix;
+  		std::vector<std::vector<float>> minMatrix, maxMatrix;
   		
   		// Fill the scaleMin and scaleMax per each Ptbins
-  		void scalePars_matrices(std::vector<std::string> preprocessFiles, std::vector<std::vector<float>>& MinMatrix, std::vector<std::vector<float>>& MaxMatrix){
-  			MinMatrix.clear();
-    			MaxMatrix.clear();
-  		        MinMatrix.resize(preprocessFiles.size());
-    			MaxMatrix.resize(preprocessFiles.size());
+  		void scalePars_matrices(std::vector<std::string> preprocessFiles, std::vector<std::vector<float>>& minMatrix, std::vector<std::vector<float>>& maxMatrix){
+  			minMatrix.clear();
+    			maxMatrix.clear();
+  		        minMatrix.resize(preprocessFiles.size());
+    			maxMatrix.resize(preprocessFiles.size());
   			for(size_t i =0; i < preprocessFiles.size(); i++){
   			// Open the file for reading
     				FILE* fp = fopen(preprocessFiles.at(i).c_str(), "r");
@@ -62,8 +62,8 @@ namespace o2::analysis
 				} else {
 	    				LOG(info) << "JSON document successfully parsed for ML pre-processing.\n";
 	    				for(size_t j = 0; j < d["scaleMin"].Size(); j++){
-	    					(MinMatrix.at(i)).push_back(d["scaleMin"][j].GetFloat());
-	    					(MaxMatrix.at(i)).push_back(d["scaleMax"][j].GetFloat());
+	    					(minMatrix.at(i)).push_back(d["scaleMin"][j].GetFloat());
+	    					(maxMatrix.at(i)).push_back(d["scaleMax"][j].GetFloat());
 	                                }
 				}	
   			}
@@ -147,7 +147,7 @@ namespace o2::analysis
 				  }
 				  else{//MSE    
 						for (size_t j = 0; j < yPred.size(); ++j) { //for over the features 
-								sum += pow(((yTrueScaled).at(j) - (yPred).at(j)), 2); //has dimensions
+								sum += std::pow(((yTrueScaled).at(j) - (yPred).at(j)), 2); //has dimensions
 								LOG(debug)<<"getMse Local feature = "<<j<<" ----> input = "<<yTrueScaled.at(j)<<" AE prediction = "<< yPred.at(j);           
 						}
 						mse = sum/yPred.size(); //MSE of a candidate 

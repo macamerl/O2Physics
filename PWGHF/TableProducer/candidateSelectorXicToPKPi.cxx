@@ -89,8 +89,6 @@ struct HfCandidateSelectorXicToPKPi {
   Configurable<bool> applyMSE{"applyMSE", false, "Flag to calculate MSE for autoencoders"};
   Configurable<bool> applyMinMax{"applyMinMax", false, "Flag to MinMax feature preprocessing"};
   /// Parameter vectors for feature preprocessing - external scaling
-  //Configurable<std::vector<float>> scaleMin{"scaleMin", {0.}, "vector of scaling parameter min"};
-  //Configurable<std::vector<float>> scaleMax{"scaleMax", {1.}, "vector of scaling parameter max"};
   Configurable<std::vector<std::string>> preprocessJsonFiles{"preprocessJsonFiles", std::vector<std::string>{"default"}, "vector of files for preprocessing parameters per Pt bin"};
   // CCDB configuration
   Configurable<std::string> ccdbUrl{"ccdbUrl", "http://alice-ccdb.cern.ch", "url of the ccdb repository"};
